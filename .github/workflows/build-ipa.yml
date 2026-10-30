@@ -1,0 +1,58 @@
+name: Build IPA
+on: [push, workflow_dispatch]
+env:
+  DEVELOPER_DIR: /Applications/Xcode_27.1.app
+  SCHEME_NAME: 'EhPanda'
+  INFO_PLIST_PATH: './EhPanda/App/Info.plist'
+  BUILDS_PATH: '/tmp/action-builds'
+  PAYLOAD_PATH: '/tmp/action-builds/Payload'
+  THIN_PAYLOAD_SCRIPT_PATH: './actions-tool/thin-payload.sh'
+  ARCHIVE_PATH: '/tmp/action-builds/EhPanda.xcarchive'
+
+jobs:
+  Build:
+    runs-on: xcode-27
+    # Pushes only build when the commit message asks for it
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build ipa]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install iOS Platform
+        uses: nick-fields/retry@v4
+        with:
+          retry_on: error
+          max_attempts: 10
+          timeout_minutes: 999
+          command: xcodebuild -downloadPlatform iOS
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Xcode archive
+        run: xcodebuild archive
+          -skipMacroValidation
+          -scheme ${{ env.SCHEME_NAME }}
+          -destination 'generic/platform=iOS'
+          -archivePath ${{ env.ARCHIVE_PATH }}
+          CODE_SIGN_IDENTITY=
+          CODE_SIGN_ENTITLEMENTS=
+          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_REQUIRED=NO
+          GCC_OPTIMIZATION_LEVEL=s
+          SWIFT_OPTIMIZATION_LEVEL=-O
+      - name: Export .ipa file
+        id: export-ipa
+        run: |
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $INFO_PLIST_PATH)
+          ipa_path="$BUILDS_PATH/$SCHEME_NAME-$version-${GITHUB_SHA::7}.ipa"
+          mkdir -p $PAYLOAD_PATH
+          mv $ARCHIVE_PATH/Products/Applications/$SCHEME_NAME.app $PAYLOAD_PATH/$SCHEME_NAME.app
+          sh $THIN_PAYLOAD_SCRIPT_PATH $PAYLOAD_PATH/$SCHEME_NAME.app
+          pushd $BUILDS_PATH
+          zip -r $ipa_path ./Payload
+          popd
+          echo "ipa_path=$ipa_path" >> $GITHUB_OUTPUT
+      - name: Upload .ipa file
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ steps.export-ipa.outputs.ipa_path }}
+          archive: false
+          if-no-files-found: error
