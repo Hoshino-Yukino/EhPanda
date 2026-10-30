@@ -26,6 +26,16 @@ import ComposableArchitecture
                 .opacity(databaseState != .idle ? 1 : 0)
                 .animation(.linear(duration: 0.5), value: databaseState)
             }
+            .background {
+                // Window size changes without rotating when iPhone Duo folds or unfolds
+                Color.clear
+                    .ignoresSafeArea()
+                    .onGeometryChange(for: CGSize.self) { proxy in
+                        proxy.size
+                    } action: { _ in
+                        WindowGeometry.shared.update()
+                    }
+            }
             .navigationViewStyle(.stack)
         }
     }

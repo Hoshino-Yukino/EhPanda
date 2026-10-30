@@ -383,7 +383,7 @@ private struct ToplistsSection: View {
                     galleries: galleries(type: type, range: 0...2), startRanking: 1,
                     navigateAction: navigateAction
                 )
-                if DeviceUtil.isPad {
+                if DeviceUtil.isPadWidth {
                     VerticalToplistsStack(
                         galleries: galleries(type: type, range: 3...5), startRanking: 4,
                         navigateAction: navigateAction

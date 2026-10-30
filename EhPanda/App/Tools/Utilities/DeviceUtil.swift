@@ -5,6 +5,7 @@
 
 import SwiftUI
 import Foundation
+import Observation
 
 struct DeviceUtil {
     static var isPad: Bool {
@@ -14,8 +15,10 @@ struct DeviceUtil {
         UIDevice.current.userInterfaceIdiom == .phone
     }
 
+    // Covers iPad and the iPhone Duo inner display (626pt short side),
+    // while every other iPhone (440pt at most) stays below it.
     static var isPadWidth: Bool {
-        windowW >= 744
+        windowW >= 600
     }
 
     static var isSEWidth: Bool {
@@ -34,14 +37,10 @@ struct DeviceUtil {
             .windows.last
     }
 
+    // The inner display of iPhone Duo doesn't honor supported interface orientations,
+    // so compare the window's dimensions instead of reading the interface orientation.
     static var isLandscape: Bool {
-        [.landscapeLeft, .landscapeRight]
-            .contains(keyWindow?.windowScene?.effectiveGeometry.interfaceOrientation)
-    }
-
-    static var isPortrait: Bool {
-        [.portrait, .portraitUpsideDown]
-            .contains(keyWindow?.windowScene?.effectiveGeometry.interfaceOrientation)
+        absWindowW > absWindowH
     }
 
     static var windowW: CGFloat {
@@ -52,27 +51,30 @@ struct DeviceUtil {
         max(absWindowW, absWindowH)
     }
 
-    static var screenW: CGFloat {
-        min(absScreenW, absScreenH)
-    }
-
-    static var screenH: CGFloat {
-        max(absScreenW, absScreenH)
-    }
-
     static var absWindowW: CGFloat {
-        keyWindow?.frame.size.width ?? absScreenW
+        windowSize.width
     }
 
     static var absWindowH: CGFloat {
-        keyWindow?.frame.size.height ?? absScreenH
+        windowSize.height
     }
 
-    static var absScreenW: CGFloat {
-        UIScreen.main.bounds.size.width
+    // Reading `WindowGeometry.shared.size` registers an observation dependency,
+    // so views that use these metrics re-render when the window resizes,
+    // e.g. when iPhone Duo folds or unfolds.
+    private static var windowSize: CGSize {
+        let observedSize = WindowGeometry.shared.size
+        return (keyWindow ?? anyWindow)?.frame.size ?? observedSize
     }
+}
 
-    static var absScreenH: CGFloat {
-        UIScreen.main.bounds.size.height
+// MARK: WindowGeometry
+@Observable final class WindowGeometry {
+    static let shared = WindowGeometry()
+    private(set) var size: CGSize = .zero
+
+    func update() {
+        guard let newSize = DeviceUtil.keyWindow?.frame.size, newSize != size else { return }
+        size = newSize
     }
 }

@@ -36,7 +36,7 @@ struct GalleryCardCell: View {
     }
     private var title: String {
         let trimmedTitle = gallery.trimmedTitle
-        guard !DeviceUtil.isPad, trimmedTitle.count > 20 else {
+        guard !DeviceUtil.isPadWidth, trimmedTitle.count > 20 else {
             return gallery.title
         }
         return trimmedTitle

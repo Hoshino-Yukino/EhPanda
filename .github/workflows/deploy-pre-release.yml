@@ -15,7 +15,7 @@ on:
         required: true
         type: string
 env:
-  DEVELOPER_DIR: /Applications/Xcode_26.6.app
+  DEVELOPER_DIR: /Applications/Xcode_27.1.app
   SCHEME_NAME: 'EhPanda'
   ALTSTORE_JSON_PATH: './AltStore.json'
   BUILDS_PATH: '/tmp/action-builds'
@@ -26,7 +26,7 @@ env:
 
 jobs:
   Deploy:
-    runs-on: macos-26
+    runs-on: xcode-27
     if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Install iOS 26 Platform
+      - name: Install iOS Platform
         uses: nick-fields/retry@v4
         with:
           retry_on: error
@@ -48,7 +48,7 @@ jobs:
         run: xcodebuild clean test
           -skipMacroValidation
           -scheme ${{ env.SCHEME_NAME }}
-          -destination 'platform=iOS Simulator,name=iPhone Air'
+          -destination 'platform=iOS Simulator,name=iPhone Duo'
       - name: Bump version
         id: bump-version
         uses: yanamura/ios-bump-version@v1

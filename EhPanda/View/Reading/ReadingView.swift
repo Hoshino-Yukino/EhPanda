@@ -21,6 +21,7 @@ struct ReadingView: View {
     @StateObject private var gestureHandler = GestureHandler()
     @StateObject private var pageHandler = PageHandler()
     @StateObject private var page: Page = .first()
+    @State private var foldSpacing: CGFloat = 0
 
     init(
         store: StoreOf<ReadingReducer>,
@@ -125,6 +126,11 @@ struct ReadingView: View {
             .gesture(tapGesture, isEnabled: gestureHandler.scale == 1)
             .gesture(magnificationGesture)
             .ignoresSafeArea()
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                dualPageFoldSpacing(in: proxy)
+            } action: { newValue in
+                foldSpacing = newValue
+            }
             .id(store.databaseLoadingState)
             .id(store.forceRefreshID)
 
@@ -211,6 +217,7 @@ struct ReadingView: View {
         HorizontalImageStack(
             index: index,
             isDualPage: isDualPage,
+            spacing: isDualPage ? foldSpacing : 0,
             isDatabaseLoading: store.databaseLoadingState != .idle,
             backgroundColor: backgroundColor,
             config: imageStackConfig,
@@ -337,10 +344,24 @@ extension ReadingView {
     }
 }
 
+// MARK: Fold
+// Width of the iPhone Duo fold when it runs vertically through the middle of the reader,
+// so that each page of a dual-page spread stays on its own side of the fold.
+private func dualPageFoldSpacing(in proxy: GeometryProxy) -> CGFloat {
+    guard #available(iOS 27.1, *) else { return 0 }
+    let midX = proxy.size.width / 2
+    return proxy.reservedRegions(kind: .division)
+        .map(\.frame)
+        .filter { $0.height > $0.width && abs($0.midX - midX) <= 2 }
+        .map(\.width)
+        .max() ?? 0
+}
+
 // MARK: HorizontalImageStack
 private struct HorizontalImageStack: View {
     private let index: Int
     private let isDualPage: Bool
+    private let spacing: CGFloat
     private let isDatabaseLoading: Bool
     private let backgroundColor: Color
     private let config: ImageStackConfig
@@ -362,7 +383,7 @@ private struct HorizontalImageStack: View {
     private let shareImageAction: (URL) -> Void
 
     init(
-        index: Int, isDualPage: Bool, isDatabaseLoading: Bool, backgroundColor: Color,
+        index: Int, isDualPage: Bool, spacing: CGFloat, isDatabaseLoading: Bool, backgroundColor: Color,
         config: ImageStackConfig, imageURLs: [Int: URL], originalImageURLs: [Int: URL],
         loadingStates: [Int: LoadingState], enablesLiveText: Bool,
         liveTextGroups: [Int: [LiveTextGroup]], focusedLiveTextGroup: LiveTextGroup?,
@@ -375,6 +396,7 @@ private struct HorizontalImageStack: View {
     ) {
         self.index = index
         self.isDualPage = isDualPage
+        self.spacing = spacing
         self.isDatabaseLoading = isDatabaseLoading
         self.backgroundColor = backgroundColor
         self.config = config
@@ -397,7 +419,7 @@ private struct HorizontalImageStack: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: spacing) {
             if config.isFirstAvailable {
                 imageContainer(index: config.firstIndex)
             }

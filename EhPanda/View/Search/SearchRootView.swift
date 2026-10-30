@@ -292,7 +292,7 @@ private struct DoubleVerticalKeywordsStack: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 30) {
-            if !DeviceUtil.isPad {
+            if !DeviceUtil.isPadWidth {
                 VerticalKeywordsStack(
                     keywords: singleKeywords,
                     searchAction: searchAction,

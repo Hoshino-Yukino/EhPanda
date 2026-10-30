@@ -87,12 +87,12 @@ private struct HathArchivesView: View {
         _selection = selection
     }
 
-    private let gridItems = [
-        GridItem(.adaptive(
+    private var gridItems: [GridItem] {
+        [GridItem(.adaptive(
             minimum: Defaults.FrameSize.archiveGridWidth,
             maximum: Defaults.FrameSize.archiveGridWidth
-        ))
-    ]
+        ))]
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {

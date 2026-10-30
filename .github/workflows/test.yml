@@ -2,15 +2,15 @@ name: Test
 on: [push, workflow_dispatch]
 env:
    SCHEME_NAME: 'EhPanda'
-   DEVELOPER_DIR: /Applications/Xcode_26.6.app
+   DEVELOPER_DIR: /Applications/Xcode_27.1.app
 jobs:
   Test:
-    runs-on: macos-26
+    runs-on: xcode-27
     if: ${{ !contains(github.event.head_commit.message, '[skip test]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Install iOS 26 Platform
+      - name: Install iOS Platform
         uses: nick-fields/retry@v4
         with:
           retry_on: error
@@ -23,4 +23,4 @@ jobs:
         run: xcodebuild clean test
           -skipMacroValidation
           -scheme ${{ env.SCHEME_NAME }}
-          -destination 'platform=iOS Simulator,name=iPhone Air'
+          -destination 'platform=iOS Simulator,name=iPhone Duo'

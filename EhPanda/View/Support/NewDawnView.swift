@@ -13,7 +13,7 @@ struct NewDawnView: View {
         DeviceUtil.windowW * 0.2
     }
     private var sunWidth: Double {
-        DeviceUtil.windowW * (DeviceUtil.isPad ? 0.5 : 0.6)
+        DeviceUtil.windowW * (DeviceUtil.isPadWidth ? 0.5 : 0.6)
     }
 
     private var gradientColors: [Color] {
