@@ -24,6 +24,7 @@
 "hud.title.communicating" = "連線中...";
 "hud.caption.copied_to_clipboard" = "已複製到剪貼簿";
 "hud.caption.saved_to_photo_library" = "已儲存到照片";
+"hud.caption.queued_for_lanraragi_download" = "已加入 LANraragi 下載佇列";
 
 // MARK: AutoLock
 "local_authorization.reason" = "由於超過 APP 自動鎖定期限，APP 已被鎖定，請重新解鎖";
@@ -187,15 +188,20 @@
 "general_setting_view.title.redirects_links_to_the_selected_host" = "將連結重新導向至選擇的網站";
 "general_setting_view.title.detects_links_from_clipboard" = "偵測剪貼簿中的連結";
 "general_setting_view.title.background_blur_radius" = "後台背景模糊";
+"general_setting_view.title.lanraragi_server_url" = "伺服器位址";
+"general_setting_view.title.lanraragi_api_key" = "API Key";
 "general_setting_view.button.logs" = "日誌";
 "general_setting_view.button.import_custom_translations" = "匯入自訂標籤翻譯";
 "general_setting_view.button.remove_custom_translations" = "刪除自訂標籤翻譯";
 "general_setting_view.button.clear_image_caches" = "清理圖片快取";
+"general_setting_view.button.test_lanraragi_connection" = "測試連線";
 "general_setting_view.value.default_language_description" = "N/A";
 "general_setting_view.section.title.tags" = "標籤";
 "general_setting_view.section.title.navigation" = "導覽";
 "general_setting_view.section.title.security" = "安全";
 "general_setting_view.section.title.caches" = "快取";
+"general_setting_view.section.title.lanraragi" = "LANraragi";
+"general_setting_view.section.footer.lanraragi" = "設定後，可在畫廊詳細頁面的選單中將畫廊傳送到 LANraragi 伺服器下載。";
 // AutoLockPolicy
 "enum.auto_lock_policy.value.never" = "永不自動鎖定";
 "enum.auto_lock_policy.value.instantly" = "立刻";
@@ -267,6 +273,7 @@
 "detail_view.toolbar_item.button.archives" = "存檔至 H@H 用戶端";
 "detail_view.toolbar_item.button.torrents" = "種子";
 "detail_view.toolbar_item.button.share" = "分享";
+"detail_view.toolbar_item.button.send_to_lanraragi" = "傳送到 LANraragi";
 "detail_view.context_menu.button.detail" = "Detail";
 "detail_view.context_menu.button.withdraw_vote" = "收回評分";
 "detail_view.context_menu.button.vote_up" = "Vote up";

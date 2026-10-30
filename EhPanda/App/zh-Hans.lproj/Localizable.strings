@@ -24,6 +24,7 @@
 "hud.title.communicating" = "通信中...";
 "hud.caption.copied_to_clipboard" = "已复制到剪切板";
 "hud.caption.saved_to_photo_library" = "已保存到图库";
+"hud.caption.queued_for_lanraragi_download" = "已加入 LANraragi 下载队列";
 
 // MARK: AutoLock
 "local_authorization.reason" = "因超过设置的自动锁定期限，App 已被锁定";
@@ -187,15 +188,20 @@
 "general_setting_view.title.redirects_links_to_the_selected_host" = "重定向链接到选定的站点";
 "general_setting_view.title.detects_links_from_clipboard" = "从剪切板检测链接";
 "general_setting_view.title.background_blur_radius" = "后台模糊效果";
+"general_setting_view.title.lanraragi_server_url" = "服务器地址";
+"general_setting_view.title.lanraragi_api_key" = "API Key";
 "general_setting_view.button.logs" = "日志";
 "general_setting_view.button.import_custom_translations" = "导入自定义翻译";
 "general_setting_view.button.remove_custom_translations" = "移除自定义翻译";
 "general_setting_view.button.clear_image_caches" = "清空图片缓存";
+"general_setting_view.button.test_lanraragi_connection" = "测试连接";
 "general_setting_view.value.default_language_description" = "无效";
 "general_setting_view.section.title.tags" = "标签";
 "general_setting_view.section.title.navigation" = "导航";
 "general_setting_view.section.title.security" = "安全";
 "general_setting_view.section.title.caches" = "缓存";
+"general_setting_view.section.title.lanraragi" = "LANraragi";
+"general_setting_view.section.footer.lanraragi" = "设置后，可在画廊详情页的菜单中将画廊发送到 LANraragi 服务器下载。";
 // AutoLockPolicy
 "enum.auto_lock_policy.value.never" = "不锁定";
 "enum.auto_lock_policy.value.instantly" = "立即";
@@ -267,6 +273,7 @@
 "detail_view.toolbar_item.button.archives" = "归档";
 "detail_view.toolbar_item.button.torrents" = "种子";
 "detail_view.toolbar_item.button.share" = "分享";
+"detail_view.toolbar_item.button.send_to_lanraragi" = "发送到 LANraragi";
 "detail_view.context_menu.button.detail" = "详情";
 "detail_view.context_menu.button.withdraw_vote" = "撤销投票";
 "detail_view.context_menu.button.vote_up" = "投票赞成";

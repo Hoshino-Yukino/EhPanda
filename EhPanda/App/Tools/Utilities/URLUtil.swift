@@ -134,6 +134,19 @@ struct URLUtil {
     static func githubDownload(repoName: String, fileName: String) -> URL {
         Defaults.URL.github.appendingPathComponent("\(repoName)/releases/latest/download/\(fileName)")
     }
+
+    // LANraragi
+    static func lanraragiAPI(serverURL: String, path: String) -> URL? {
+        var serverURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !serverURL.isEmpty else { return nil }
+        if !serverURL.contains("://") {
+            serverURL = "http://" + serverURL
+        }
+        while serverURL.hasSuffix("/") {
+            serverURL.removeLast()
+        }
+        return URL(string: "\(serverURL)/api/\(path)")
+    }
 }
 
 // MARK: Combining (Filter)

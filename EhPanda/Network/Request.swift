@@ -1085,3 +1085,76 @@ struct VoteGalleryTagRequest: Request {
             .eraseToAnyPublisher()
     }
 }
+
+// MARK: LANraragi
+// A separate session keeps domain fronting and E-Hentai cookies out of these requests
+private let lanraragiSession = URLSession(configuration: .ephemeral)
+
+private extension URLRequest {
+    mutating func setLANraragiAuthorization(apiKey: String) {
+        guard !apiKey.isEmpty else { return }
+        setValue("Bearer " + Data(apiKey.utf8).base64EncodedString(), forHTTPHeaderField: "Authorization")
+    }
+}
+
+struct VerifyLANraragiRequest: Request {
+    let serverURL: String
+    let apiKey: String
+
+    var publisher: AnyPublisher<Any, AppError> {
+        // Unlike `/api/info`, `/api/shinobu` requires the API key
+        guard let url = URLUtil.lanraragiAPI(serverURL: serverURL, path: "shinobu") else {
+            return Fail<Any, AppError>(error: .networkingFailed).eraseToAnyPublisher()
+        }
+        var request = URLRequest(url: url)
+        request.setLANraragiAuthorization(apiKey: apiKey)
+
+        return lanraragiSession.dataTaskPublisher(for: request)
+            .tryMap { _, response -> Any in
+                guard (response as? HTTPURLResponse)?.statusCode == 200
+                else { throw AppError.networkingFailed }
+                return response
+            }
+            .mapError(mapAppError)
+            .eraseToAnyPublisher()
+    }
+}
+
+struct QueueLANraragiDownloadRequest: Request {
+    let serverURL: String
+    let apiKey: String
+    let downloadURL: URL
+
+    var publisher: AnyPublisher<Any, AppError> {
+        var allowedCharacters = CharacterSet.urlQueryAllowed
+        allowedCharacters.remove(charactersIn: "&=+?#")
+
+        guard let url = URLUtil.lanraragiAPI(serverURL: serverURL, path: "download_url"),
+              var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let encodedDownloadURL = downloadURL.absoluteString
+                .addingPercentEncoding(withAllowedCharacters: allowedCharacters)
+        else {
+            return Fail<Any, AppError>(error: .networkingFailed).eraseToAnyPublisher()
+        }
+        components.percentEncodedQueryItems = [.init(name: "url", value: encodedDownloadURL)]
+        guard let requestURL = components.url else {
+            return Fail<Any, AppError>(error: .networkingFailed).eraseToAnyPublisher()
+        }
+
+        var request = URLRequest(url: requestURL)
+        request.httpMethod = "POST"
+        request.setLANraragiAuthorization(apiKey: apiKey)
+
+        return lanraragiSession.dataTaskPublisher(for: request)
+            .tryMap { data, response -> Any in
+                guard (response as? HTTPURLResponse)?.statusCode == 200
+                else { throw AppError.networkingFailed }
+                guard let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      dict["success"] as? Int == 1
+                else { throw AppError.parseFailed }
+                return dict
+            }
+            .mapError(mapAppError)
+            .eraseToAnyPublisher()
+    }
+}

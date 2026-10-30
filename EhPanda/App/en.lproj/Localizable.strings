@@ -24,6 +24,7 @@
 "hud.title.communicating" = "Communicating...";
 "hud.caption.copied_to_clipboard" = "Copied to clipboard";
 "hud.caption.saved_to_photo_library" = "Saved to photo library";
+"hud.caption.queued_for_lanraragi_download" = "Added to the LANraragi download queue";
 
 // MARK: AutoLock
 "local_authorization.reason" = "The App has been locked due to the Auto-Lock expiration.";
@@ -187,15 +188,20 @@
 "general_setting_view.title.redirects_links_to_the_selected_host" = "Redirects links to the selected host";
 "general_setting_view.title.detects_links_from_clipboard" = "Detects links from the clipboard";
 "general_setting_view.title.background_blur_radius" = "Background blur radius";
+"general_setting_view.title.lanraragi_server_url" = "Server URL";
+"general_setting_view.title.lanraragi_api_key" = "API Key";
 "general_setting_view.button.logs" = "Logs";
 "general_setting_view.button.import_custom_translations" = "Import custom translations";
 "general_setting_view.button.remove_custom_translations" = "Remove custom translations";
 "general_setting_view.button.clear_image_caches" = "Clear image caches";
+"general_setting_view.button.test_lanraragi_connection" = "Test connection";
 "general_setting_view.value.default_language_description" = "N/A";
 "general_setting_view.section.title.tags" = "Tags";
 "general_setting_view.section.title.navigation" = "Navigation";
 "general_setting_view.section.title.security" = "Security";
 "general_setting_view.section.title.caches" = "Caches";
+"general_setting_view.section.title.lanraragi" = "LANraragi";
+"general_setting_view.section.footer.lanraragi" = "Once set up, you can send a gallery to your LANraragi server for downloading from the menu on the gallery detail page.";
 // AutoLockPolicy
 "enum.auto_lock_policy.value.never" = "Never";
 "enum.auto_lock_policy.value.instantly" = "Instantly";
@@ -267,6 +273,7 @@
 "detail_view.toolbar_item.button.archives" = "Archives";
 "detail_view.toolbar_item.button.torrents" = "Torrents";
 "detail_view.toolbar_item.button.share" = "Share";
+"detail_view.toolbar_item.button.send_to_lanraragi" = "Send to LANraragi";
 "detail_view.context_menu.button.detail" = "Detail";
 "detail_view.context_menu.button.withdraw_vote" = "Withdraw vote";
 "detail_view.context_menu.button.vote_up" = "Vote up";

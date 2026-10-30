@@ -24,6 +24,7 @@
 "hud.title.communicating" = "通信中...";
 "hud.caption.copied_to_clipboard" = "クリップボードにコピーしました";
 "hud.caption.saved_to_photo_library" = "ライブラリに保存しました";
+"hud.caption.queued_for_lanraragi_download" = "LANraragi のダウンロードキューに追加しました";
 
 // MARK: AutoLock
 "local_authorization.reason" = "自動ロック期限が切れたため、アプリがロックされています";
@@ -187,15 +188,20 @@
 "general_setting_view.title.redirects_links_to_the_selected_host" = "リンクを選択されたホストへリダイレクト";
 "general_setting_view.title.detects_links_from_clipboard" = "クリップボードからリンクを探知";
 "general_setting_view.title.background_blur_radius" = "バッググラウンドぼかし度";
+"general_setting_view.title.lanraragi_server_url" = "サーバー URL";
+"general_setting_view.title.lanraragi_api_key" = "API キー";
 "general_setting_view.button.logs" = "ログ";
 "general_setting_view.button.import_custom_translations" = "カスタム翻訳を取り込む";
 "general_setting_view.button.remove_custom_translations" = "カスタム翻訳を削除";
 "general_setting_view.button.clear_image_caches" = "画像キャッシュを削除";
+"general_setting_view.button.test_lanraragi_connection" = "接続をテスト";
 "general_setting_view.value.default_language_description" = "無効";
 "general_setting_view.section.title.tags" = "タグ";
 "general_setting_view.section.title.navigation" = "ナビゲーション";
 "general_setting_view.section.title.security" = "セキュリティ";
 "general_setting_view.section.title.caches" = "キャッシュ";
+"general_setting_view.section.title.lanraragi" = "LANraragi";
+"general_setting_view.section.footer.lanraragi" = "設定すると、ギャラリー詳細ページのメニューからギャラリーを LANraragi サーバーに送信してダウンロードできます。";
 // AutoLockPolicy
 "enum.auto_lock_policy.value.never" = "なし";
 "enum.auto_lock_policy.value.instantly" = "すぐに";
@@ -267,6 +273,7 @@
 "detail_view.toolbar_item.button.archives" = "アーカイブ";
 "detail_view.toolbar_item.button.torrents" = "トレント";
 "detail_view.toolbar_item.button.share" = "共有";
+"detail_view.toolbar_item.button.send_to_lanraragi" = "LANraragi に送信";
 "detail_view.context_menu.button.detail" = "詳細";
 "detail_view.context_menu.button.withdraw_vote" = "投票を取り消す";
 "detail_view.context_menu.button.vote_up" = "賛成票を投じる";

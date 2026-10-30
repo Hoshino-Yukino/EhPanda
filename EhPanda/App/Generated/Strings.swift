@@ -451,6 +451,8 @@ internal enum L10n {
         internal enum Button {
           /// Archives
           internal static let archives = L10n.tr("Localizable", "detail_view.toolbar_item.button.archives", fallback: "Archives")
+          /// Send to LANraragi
+          internal static let sendToLanraragi = L10n.tr("Localizable", "detail_view.toolbar_item.button.send_to_lanraragi", fallback: "Send to LANraragi")
           /// Share
           internal static let share = L10n.tr("Localizable", "detail_view.toolbar_item.button.share", fallback: "Share")
           /// Torrents
@@ -1812,11 +1814,19 @@ internal enum L10n {
         internal static let logs = L10n.tr("Localizable", "general_setting_view.button.logs", fallback: "Logs")
         /// Remove custom translations
         internal static let removeCustomTranslations = L10n.tr("Localizable", "general_setting_view.button.remove_custom_translations", fallback: "Remove custom translations")
+        /// Test connection
+        internal static let testLanraragiConnection = L10n.tr("Localizable", "general_setting_view.button.test_lanraragi_connection", fallback: "Test connection")
       }
       internal enum Section {
+        internal enum Footer {
+          /// Once set up, you can send a gallery to your LANraragi server for downloading from the menu on the gallery detail page.
+          internal static let lanraragi = L10n.tr("Localizable", "general_setting_view.section.footer.lanraragi", fallback: "Once set up, you can send a gallery to your LANraragi server for downloading from the menu on the gallery detail page.")
+        }
         internal enum Title {
           /// Caches
           internal static let caches = L10n.tr("Localizable", "general_setting_view.section.title.caches", fallback: "Caches")
+          /// LANraragi
+          internal static let lanraragi = L10n.tr("Localizable", "general_setting_view.section.title.lanraragi", fallback: "LANraragi")
           /// Navigation
           internal static let navigation = L10n.tr("Localizable", "general_setting_view.section.title.navigation", fallback: "Navigation")
           /// Security
@@ -1838,6 +1848,10 @@ internal enum L10n {
         internal static let general = L10n.tr("Localizable", "general_setting_view.title.general", fallback: "General")
         /// Language
         internal static let language = L10n.tr("Localizable", "general_setting_view.title.language", fallback: "Language")
+        /// API Key
+        internal static let lanraragiApiKey = L10n.tr("Localizable", "general_setting_view.title.lanraragi_api_key", fallback: "API Key")
+        /// Server URL
+        internal static let lanraragiServerUrl = L10n.tr("Localizable", "general_setting_view.title.lanraragi_server_url", fallback: "Server URL")
         /// Redirects links to the selected host
         internal static let redirectsLinksToTheSelectedHost = L10n.tr("Localizable", "general_setting_view.title.redirects_links_to_the_selected_host", fallback: "Redirects links to the selected host")
         /// Shows images in tags
@@ -1878,6 +1892,8 @@ internal enum L10n {
       internal enum Caption {
         /// Copied to clipboard
         internal static let copiedToClipboard = L10n.tr("Localizable", "hud.caption.copied_to_clipboard", fallback: "Copied to clipboard")
+        /// Added to the LANraragi download queue
+        internal static let queuedForLanraragiDownload = L10n.tr("Localizable", "hud.caption.queued_for_lanraragi_download", fallback: "Added to the LANraragi download queue")
         /// Saved to photo library
         internal static let savedToPhotoLibrary = L10n.tr("Localizable", "hud.caption.saved_to_photo_library", fallback: "Saved to photo library")
       }

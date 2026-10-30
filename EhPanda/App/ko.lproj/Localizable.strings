@@ -24,6 +24,7 @@
 "hud.title.communicating" = "접속 중...";
 "hud.caption.copied_to_clipboard" = "클립보드에 복사되었어요";
 "hud.caption.saved_to_photo_library" = "이미지 저장";
+"hud.caption.queued_for_lanraragi_download" = "LANraragi 다운로드 대기열에 추가되었어요";
 
 // MARK: AutoLock
 "local_authorization.reason" = "자동 잠금으로 앱이 잠겼어요.";
@@ -187,15 +188,20 @@
 "general_setting_view.title.redirects_links_to_the_selected_host" = "선택한 서버로 이동하기";
 "general_setting_view.title.detects_links_from_clipboard" = "클립보드의 링크 인식하기";
 "general_setting_view.title.background_blur_radius" = "Background blur radius";
+"general_setting_view.title.lanraragi_server_url" = "서버 주소";
+"general_setting_view.title.lanraragi_api_key" = "API 키";
 "general_setting_view.button.logs" = "로그";
 "general_setting_view.button.import_custom_translations" = "Import custom translations";
 "general_setting_view.button.remove_custom_translations" = "Remove custom translations";
 "general_setting_view.button.clear_image_caches" = "이미지 캐시 지우기";
+"general_setting_view.button.test_lanraragi_connection" = "연결 테스트";
 "general_setting_view.value.default_language_description" = "N/A";
 "general_setting_view.section.title.tags" = "Tags";
 "general_setting_view.section.title.navigation" = "내비게이션";
 "general_setting_view.section.title.security" = "개인 정보 보호";
 "general_setting_view.section.title.caches" = "캐시";
+"general_setting_view.section.title.lanraragi" = "LANraragi";
+"general_setting_view.section.footer.lanraragi" = "설정하면 갤러리 상세 페이지의 메뉴에서 갤러리를 LANraragi 서버로 보내 다운로드할 수 있어요.";
 // AutoLockPolicy
 "enum.auto_lock_policy.value.never" = "안 함";
 "enum.auto_lock_policy.value.instantly" = "즉시";
@@ -267,6 +273,7 @@
 "detail_view.toolbar_item.button.archives" = "아카이브";
 "detail_view.toolbar_item.button.torrents" = "토렌트";
 "detail_view.toolbar_item.button.share" = "공유";
+"detail_view.toolbar_item.button.send_to_lanraragi" = "LANraragi로 보내기";
 "detail_view.context_menu.button.detail" = "Detail";
 "detail_view.context_menu.button.withdraw_vote" = "Withdraw vote";
 "detail_view.context_menu.button.vote_up" = "Vote up";

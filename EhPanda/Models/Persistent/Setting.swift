@@ -29,6 +29,7 @@ struct Setting: Codable, Equatable {
     var detectsLinksFromClipboard = false
     var backgroundBlurRadius: Double = 10
     var autoLockPolicy: AutoLockPolicy = .never
+    var lanraragiServerURL = ""
 
     // Appearance
     var listDisplayMode: ListDisplayMode = DeviceUtil.isPadWidth ? .thumbnail : .detail
@@ -198,6 +199,7 @@ extension Setting {
         detectsLinksFromClipboard = (try? container?.decodeIfPresent(Bool.self, forKey: .detectsLinksFromClipboard)) ?? false
         backgroundBlurRadius = (try? container?.decodeIfPresent(Double.self, forKey: .backgroundBlurRadius)) ?? 10
         autoLockPolicy = (try? container?.decodeIfPresent(AutoLockPolicy.self, forKey: .autoLockPolicy)) ?? .never
+        lanraragiServerURL = (try? container?.decodeIfPresent(String.self, forKey: .lanraragiServerURL)) ?? ""
         // Appearance
         listDisplayMode = (try? container?.decodeIfPresent(ListDisplayMode.self, forKey: .listDisplayMode)) ?? (DeviceUtil.isPadWidth ? .thumbnail : .detail)
         preferredColorScheme = (try? container?.decodeIfPresent(PreferredColorScheme.self, forKey: .preferredColorScheme)) ?? .automatic

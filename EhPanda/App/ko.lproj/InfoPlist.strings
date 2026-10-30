@@ -5,3 +5,4 @@
 
 "NSFaceIDUsageDescription" = "이 권한을 허용해야 앱 잠금 해제할때 Face ID 옵션을 제공합니다.";
 "NSPhotoLibraryAddUsageDescription" = "이미지를 사진 라이브러리에 저정하고 싶으면 이 권한을 허용해주세요.";
+"NSLocalNetworkUsageDescription" = "이 권한을 허용해야 로컬 네트워크의 LANraragi 서버로 갤러리를 보낼 수 있습니다.";

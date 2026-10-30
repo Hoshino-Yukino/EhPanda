@@ -192,6 +192,16 @@ struct DetailView: View {
                 TagDetailView(detail: detail)
                     .autoBlur(radius: blurRadius)
             }
+            .progressHUD(
+                config: store.communicatingHUDConfig,
+                unwrapping: $store.route,
+                case: \.communicatingHUD
+            )
+            .progressHUD(
+                config: store.messageHUDConfig,
+                unwrapping: $store.route,
+                case: \.messageHUD
+            )
     }
 
     var body: some View {
@@ -276,6 +286,18 @@ private extension DetailView {
                     }
                 } label: {
                     Label(L10n.Localizable.DetailView.ToolbarItem.Button.share, systemSymbol: .squareAndArrowUp)
+                }
+                if !setting.lanraragiServerURL.isEmpty {
+                    Button {
+                        if let galleryURL = store.gallery.galleryURL {
+                            store.send(.queueLANraragiDownload(setting.lanraragiServerURL, galleryURL))
+                        }
+                    } label: {
+                        Label(
+                            L10n.Localizable.DetailView.ToolbarItem.Button.sendToLanraragi,
+                            systemSymbol: .trayAndArrowDown
+                        )
+                    }
                 }
             }
             .disabled(store.galleryDetail == nil || store.loadingState == .loading)

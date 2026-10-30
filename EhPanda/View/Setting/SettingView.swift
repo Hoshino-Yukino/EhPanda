@@ -61,7 +61,8 @@ private extension SettingView {
                 redirectsLinksToSelectedHost: $store.setting.redirectsLinksToSelectedHost,
                 detectsLinksFromClipboard: $store.setting.detectsLinksFromClipboard,
                 backgroundBlurRadius: $store.setting.backgroundBlurRadius,
-                autoLockPolicy: $store.setting.autoLockPolicy
+                autoLockPolicy: $store.setting.autoLockPolicy,
+                lanraragiServerURL: $store.setting.lanraragiServerURL
             )
             .tint(store.setting.accentColor)
         }

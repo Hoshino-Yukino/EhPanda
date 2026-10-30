@@ -5,6 +5,7 @@
 
 import SwiftUI
 import Foundation
+import TTProgressHUD
 import ComposableArchitecture
 
 @Reducer
@@ -22,10 +23,13 @@ struct DetailReducer {
         case detailSearch(String)
         case tagDetail(TagDetail)
         case galleryInfos(Gallery, GalleryDetail)
+        case communicatingHUD
+        case messageHUD
     }
 
     private enum CancelID: CaseIterable {
         case fetchDatabaseInfos, fetchGalleryDetail, rateGallery, favorGallery, unfavorGallery, postComment, voteTag
+        case queueLANraragiDownload
     }
 
     @ObservableState
@@ -38,6 +42,9 @@ struct DetailReducer {
         var showsUserRating = false
         var showsFullTitle = false
         var userRating = 0
+
+        var communicatingHUDConfig: TTProgressHUDConfig = .communicating
+        var messageHUDConfig = TTProgressHUDConfig()
 
         var apiKey = ""
         var loadingState: LoadingState = .idle
@@ -102,6 +109,8 @@ struct DetailReducer {
         case postComment(URL)
         case voteTag(String, Int)
         case anyGalleryOpsDone(Result<Any, AppError>)
+        case queueLANraragiDownload(String, URL)
+        case queueLANraragiDownloadDone(Result<Any, AppError>)
 
         case reading(ReadingReducer.Action)
         case archives(ArchivesReducer.Action)
@@ -115,6 +124,7 @@ struct DetailReducer {
     @Dependency(\.databaseClient) private var databaseClient
     @Dependency(\.hapticsClient) private var hapticsClient
     @Dependency(\.cookieClient) private var cookieClient
+    @Dependency(\.keychainClient) private var keychainClient
 
     func coreReducer(self: Reduce<State, Action>) -> some Reducer<State, Action> {
         Reduce { state, action in
@@ -370,6 +380,33 @@ struct DetailReducer {
                     )
                 }
                 return .run(operation: { _ in hapticsClient.generateNotificationFeedback(.error) })
+
+            case .queueLANraragiDownload(let serverURL, let galleryURL):
+                guard state.route != .communicatingHUD else { return .none }
+                state.route = .communicatingHUD
+                return .run { [apiKey = keychainClient.string(.lanraragiAPIKey) ?? ""] send in
+                    let response = await QueueLANraragiDownloadRequest(
+                        serverURL: serverURL, apiKey: apiKey, downloadURL: galleryURL
+                    )
+                    .response()
+                    await send(.queueLANraragiDownloadDone(response))
+                }
+                .cancellable(id: CancelID.queueLANraragiDownload)
+
+            case .queueLANraragiDownloadDone(let result):
+                state.route = .messageHUD
+                let isSuccess: Bool
+                switch result {
+                case .success:
+                    state.messageHUDConfig = .success(caption: L10n.Localizable.Hud.Caption.queuedForLanraragiDownload)
+                    isSuccess = true
+                case .failure(let error):
+                    state.messageHUDConfig = .error(caption: error.localizedDescription)
+                    isSuccess = false
+                }
+                return .run { _ in
+                    hapticsClient.generateNotificationFeedback(isSuccess ? .success : .error)
+                }
 
             case .reading(.onPerformDismiss):
                 return .send(.setNavigation(nil))

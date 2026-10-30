@@ -20,6 +20,7 @@ struct GeneralSettingView: View {
     @Binding private var detectsLinksFromClipboard: Bool
     @Binding private var backgroundBlurRadius: Double
     @Binding private var autoLockPolicy: AutoLockPolicy
+    @Binding private var lanraragiServerURL: String
 
     init(
         store: StoreOf<GeneralSettingReducer>,
@@ -28,7 +29,7 @@ struct GeneralSettingView: View {
         translatesTags: Binding<Bool>, showsTagsSearchSuggestion: Binding<Bool>,
         showsImagesInTags: Binding<Bool>, redirectsLinksToSelectedHost: Binding<Bool>,
         detectsLinksFromClipboard: Binding<Bool>, backgroundBlurRadius: Binding<Double>,
-        autoLockPolicy: Binding<AutoLockPolicy>
+        autoLockPolicy: Binding<AutoLockPolicy>, lanraragiServerURL: Binding<String>
     ) {
         self.store = store
         self.tagTranslatorLoadingState = tagTranslatorLoadingState
@@ -42,6 +43,7 @@ struct GeneralSettingView: View {
         _detectsLinksFromClipboard = detectsLinksFromClipboard
         _backgroundBlurRadius = backgroundBlurRadius
         _autoLockPolicy = autoLockPolicy
+        _lanraragiServerURL = lanraragiServerURL
     }
 
     private var language: String {
@@ -130,6 +132,36 @@ struct GeneralSettingView: View {
                     isOn: $detectsLinksFromClipboard
                 )
             }
+            Section {
+                LabeledContent(L10n.Localizable.GeneralSettingView.Title.lanraragiServerUrl) {
+                    TextField("", text: $lanraragiServerURL, prompt: Text(verbatim: "http://192.168.1.2:3000"))
+                        .multilineTextAlignment(.trailing)
+                        .keyboardType(.URL)
+                        .textContentType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+                LabeledContent(L10n.Localizable.GeneralSettingView.Title.lanraragiApiKey) {
+                    SecureField("", text: $store.lanraragiAPIKey)
+                        .multilineTextAlignment(.trailing)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+                Button {
+                    store.send(.verifyLANraragiConnection(lanraragiServerURL))
+                } label: {
+                    HStack {
+                        Text(L10n.Localizable.GeneralSettingView.Button.testLanraragiConnection)
+                        Spacer()
+                        lanraragiConnectionStateView
+                    }
+                }
+                .disabled(lanraragiServerURL.isEmpty || store.lanraragiConnectionState == .verifying)
+            } header: {
+                Text(L10n.Localizable.GeneralSettingView.Section.Title.lanraragi)
+            } footer: {
+                Text(L10n.Localizable.GeneralSettingView.Section.Footer.lanraragi)
+            }
             Section(L10n.Localizable.GeneralSettingView.Section.Title.security) {
                 HStack {
                     Picker(
@@ -183,9 +215,26 @@ struct GeneralSettingView: View {
         .onAppear {
             store.send(.checkPasscodeSetting)
             store.send(.calculateWebImageDiskCache)
+            store.send(.loadLANraragiAPIKey)
+        }
+        .onChange(of: lanraragiServerURL) {
+            store.send(.resetLANraragiConnectionState)
         }
         .background(navigationLink)
         .navigationTitle(L10n.Localizable.GeneralSettingView.Title.general)
+    }
+
+    @ViewBuilder private var lanraragiConnectionStateView: some View {
+        switch store.lanraragiConnectionState {
+        case .idle:
+            EmptyView()
+        case .verifying:
+            ProgressView().tint(nil)
+        case .verified:
+            Image(systemSymbol: .checkmarkCircleFill).foregroundStyle(.green)
+        case .failed:
+            Image(systemSymbol: .xmarkCircleFill).foregroundStyle(.red)
+        }
     }
 
     private var navigationLink: some View {
@@ -210,7 +259,8 @@ struct GeneralSettingView_Previews: PreviewProvider {
                 redirectsLinksToSelectedHost: .constant(false),
                 detectsLinksFromClipboard: .constant(false),
                 backgroundBlurRadius: .constant(10),
-                autoLockPolicy: .constant(.never)
+                autoLockPolicy: .constant(.never),
+                lanraragiServerURL: .constant("")
             )
         }
     }
