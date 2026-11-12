@@ -1,0 +1,65 @@
+name: Build IPA
+# Fork-only: archives an unsigned build of the regular flavor and uploads the .ipa as a workflow artifact. It makes no
+# tag, no release and no source update. Runs when started by hand, or on a push whose head commit message contains
+# "[build ipa]".
+on: [push, workflow_dispatch]
+permissions:
+  contents: read
+env:
+  SCHEME_NAME: 'EhPanda'
+  BUILDS_PATH: '/tmp/action-builds'
+  PAYLOAD_PATH: '/tmp/action-builds/Payload'
+  THIN_PAYLOAD_SCRIPT_PATH: './actions-tool/thin-payload.sh'
+  ARCHIVE_PATH: '/tmp/action-builds/EhPanda.xcarchive'
+
+jobs:
+  Build:
+    runs-on: xcode-27
+    timeout-minutes: 120
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build ipa]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install iOS 27 Platform
+        uses: nick-fields/retry@v4
+        with:
+          retry_on: error
+          max_attempts: 10
+          timeout_minutes: 999
+          command: xcodebuild -downloadPlatform iOS
+      - name: Show Xcode version
+        run: xcodebuild -version
+      # No analytics credentials are passed, so the analytics client stays a no-op in this build
+      # (Config/Analytics.xcconfig).
+      - name: Xcode archive
+        run: xcodebuild archive
+          -skipMacroValidation
+          -skipPackagePluginValidation
+          -scheme ${{ env.SCHEME_NAME }}
+          -destination 'generic/platform=iOS'
+          -archivePath ${{ env.ARCHIVE_PATH }}
+          CODE_SIGN_IDENTITY=
+          CODE_SIGN_ENTITLEMENTS=
+          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_REQUIRED=NO
+          GCC_OPTIMIZATION_LEVEL=s
+          SWIFT_OPTIMIZATION_LEVEL=-O
+      - name: Export .ipa file
+        id: export-ipa
+        run: |
+          set -euo pipefail
+          app_path="$ARCHIVE_PATH/Products/Applications/$SCHEME_NAME.app"
+          version="$(plutil -extract CFBundleShortVersionString raw -o - "$app_path/Info.plist")"
+          [[ -n "$version" ]] || exit 1
+          ipa_path="$BUILDS_PATH/$SCHEME_NAME-$version-${GITHUB_SHA::7}.ipa"
+          mkdir -p "$PAYLOAD_PATH"
+          mv "$app_path" "$PAYLOAD_PATH/$SCHEME_NAME.app"
+          sh "$THIN_PAYLOAD_SCRIPT_PATH" "$PAYLOAD_PATH/$SCHEME_NAME.app"
+          (cd "$BUILDS_PATH" && zip -qr "$ipa_path" ./Payload)
+          echo "ipa_path=$ipa_path" >> "$GITHUB_OUTPUT"
+      - name: Upload .ipa file
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ steps.export-ipa.outputs.ipa_path }}
+          archive: false
+          if-no-files-found: error
