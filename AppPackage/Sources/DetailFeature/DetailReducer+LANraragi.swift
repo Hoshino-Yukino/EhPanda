@@ -1,8 +1,10 @@
 import AppComponents
+import AppModels
 import ComposableArchitecture
 import Foundation
 import HapticsClient
 import LANraragiClient
+import UIKit
 
 // MARK: - Send to LANraragi
 // Queues the gallery in the user's LANraragi downloader without leaving the app. The toast shows the request
