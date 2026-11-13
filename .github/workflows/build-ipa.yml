@@ -1,7 +1,9 @@
 name: Build IPA
-# Fork-only: archives an unsigned build of the regular flavor and uploads the .ipa as a workflow artifact. It makes no
-# tag, no release and no source update. Runs when started by hand, or on a push whose head commit message contains
-# "[build ipa]".
+# Fork-only: archives an unsigned build of the regular flavor and uploads the .ipa as a workflow artifact. Runs on
+# every push to main, when started by hand, or on a push to another branch whose head commit message contains
+# "[build ipa]". A build of main is also published as a GitHub release, tagged `<version>-lrr.<run number>`, with the
+# IPA attached as `EhPanda.ipa`, so `releases/latest/download/EhPanda.ipa` always points at the newest build. It never
+# touches the AltStore or SideStore sources in this repository.
 on: [push, workflow_dispatch]
 permissions:
   contents: read
@@ -11,12 +13,22 @@ env:
   PAYLOAD_PATH: '/tmp/action-builds/Payload'
   THIN_PAYLOAD_SCRIPT_PATH: './actions-tool/thin-payload.sh'
   ARCHIVE_PATH: '/tmp/action-builds/EhPanda.xcarchive'
+  RELEASE_IPA_PATH: '/tmp/action-builds/release/EhPanda.ipa'
 
 jobs:
   Build:
     runs-on: xcode-27
     timeout-minutes: 120
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build ipa]') }}
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+      || contains(github.event.head_commit.message, '[build ipa]') }}
+    # One build of main at a time, so releases are made in push order. Queue, never cancel.
+    concurrency:
+      group: build-ipa-${{ github.ref }}
+      cancel-in-progress: false
+    # The release and its tag need contents: write; nothing else does.
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -50,16 +62,64 @@ jobs:
           set -euo pipefail
           app_path="$ARCHIVE_PATH/Products/Applications/$SCHEME_NAME.app"
           version="$(plutil -extract CFBundleShortVersionString raw -o - "$app_path/Info.plist")"
-          [[ -n "$version" ]] || exit 1
+          build="$(plutil -extract CFBundleVersion raw -o - "$app_path/Info.plist")"
+          bundle_id="$(plutil -extract CFBundleIdentifier raw -o - "$app_path/Info.plist")"
+          [[ -n "$version" && -n "$build" && -n "$bundle_id" ]] || exit 1
           ipa_path="$BUILDS_PATH/$SCHEME_NAME-$version-${GITHUB_SHA::7}.ipa"
           mkdir -p "$PAYLOAD_PATH"
           mv "$app_path" "$PAYLOAD_PATH/$SCHEME_NAME.app"
           sh "$THIN_PAYLOAD_SCRIPT_PATH" "$PAYLOAD_PATH/$SCHEME_NAME.app"
           (cd "$BUILDS_PATH" && zip -qr "$ipa_path" ./Payload)
-          echo "ipa_path=$ipa_path" >> "$GITHUB_OUTPUT"
+          {
+            echo "ipa_path=$ipa_path"
+            echo "version=$version"
+            echo "build=$build"
+            echo "bundle_id=$bundle_id"
+            echo "size=$(stat -f%z "$ipa_path")"
+            echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          } >> "$GITHUB_OUTPUT"
       - name: Upload .ipa file
         uses: actions/upload-artifact@v7
         with:
           path: ${{ steps.export-ipa.outputs.ipa_path }}
           archive: false
           if-no-files-found: error
+      - name: Prepare release
+        id: prepare-release
+        if: github.ref == 'refs/heads/main'
+        env:
+          IPA_PATH: ${{ steps.export-ipa.outputs.ipa_path }}
+          VERSION: ${{ steps.export-ipa.outputs.version }}
+          BUILD: ${{ steps.export-ipa.outputs.build }}
+          BUNDLE_ID: ${{ steps.export-ipa.outputs.bundle_id }}
+          SIZE: ${{ steps.export-ipa.outputs.size }}
+          DATE: ${{ steps.export-ipa.outputs.date }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$RELEASE_IPA_PATH")"
+          cp "$IPA_PATH" "$RELEASE_IPA_PATH"
+          body_path="$RUNNER_TEMP/release-body.md"
+          {
+            echo "Unsigned build of EhPanda $VERSION ($BUILD) with Send to LANraragi."
+            echo
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Bundle ID: \`$BUNDLE_ID\`"
+            echo "- Size: $SIZE bytes"
+            echo "- Built: $DATE"
+          } > "$body_path"
+          {
+            echo "tag=$VERSION-lrr.$GITHUB_RUN_NUMBER"
+            echo "body_path=$body_path"
+          } >> "$GITHUB_OUTPUT"
+      - name: Release to GitHub
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v3
+        with:
+          fail_on_unmatched_files: true
+          files: ${{ env.RELEASE_IPA_PATH }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: EhPanda ${{ steps.export-ipa.outputs.version }} (LANraragi, build ${{ github.run_number }})
+          body_path: ${{ steps.prepare-release.outputs.body_path }}
+          tag_name: ${{ steps.prepare-release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
