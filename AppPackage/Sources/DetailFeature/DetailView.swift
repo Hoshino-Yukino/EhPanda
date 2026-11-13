@@ -9,6 +9,7 @@ import Resources
 import SFSafeSymbols
 import SFSafeSymbolsExt
 public import SwiftUI
+import SystemNotification
 import TagTranslationFeature
 
 public struct DetailView: View {
@@ -49,6 +50,7 @@ public struct DetailView: View {
                 runLaunchAutomationIfNeeded()
             }
             .appAlert($store.scope(\.$alert, action: \.alert))
+            .toast($store.scope(\.$toast, action: \.toast))
             .navigationTitle(navigationTitle)
             .toolbarTitleDisplayMode(.inline)
             .toolbar(removing: isHeaderVisible || store.galleryDetail == nil ? .title : nil)

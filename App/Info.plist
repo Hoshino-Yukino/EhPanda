@@ -135,6 +135,11 @@
 	<true/>
 	<key>MKSellsDigitalGoods</key>
 	<false/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need this permission to save images to your photo library.</string>
 	<key>TelemetryDeckAppID</key>

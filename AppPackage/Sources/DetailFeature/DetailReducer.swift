@@ -8,6 +8,7 @@ import CookieClient
 import DownloadClient
 public import Foundation
 import HapticsClient
+public import LANraragiClient
 public import NetworkingFeature
 public import ReadingFeature
 public import SwiftUI
@@ -58,6 +59,7 @@ public struct DetailReducer: Sendable {
         case postComment(String)
         case voteTag(String)
         case voteComment(String)
+        case sendToLANraragi(String)
     }
 
     @ObservableState
@@ -67,6 +69,8 @@ public struct DetailReducer: Sendable {
         @SharedReader(.setting) public var setting: Setting
         @Presents public var destination: Destination.State?
         @Presents public var alert: AppAlertState<Alert>?
+        /// Shows Send to LANraragi's request and then its outcome.
+        @Presents public var toast: AppAlertState<Never>?
         public var moderation: CommentModerationFeature.State
         public var commentContent = ""
         public var postCommentFocused = false
@@ -236,6 +240,10 @@ public struct DetailReducer: Sendable {
         /// The site's answer to a vote cast on the comments screen, which the host forwards here so the card shows it.
         case applyCommentVote(commentID: String, score: Int, vote: Int)
         case anyGalleryOpsDone(Result<Void, AppError>)
+        case sendToLANraragiButtonTapped
+        /// `nil` when LANraragi queued the gallery.
+        case sendToLANraragiDone(LANraragiError?)
+        case toast(PresentationAction<Never>)
     }
 
     // Not `private`: the reducer body is split across sibling extension files (`+Actions`,
@@ -246,6 +254,7 @@ public struct DetailReducer: Sendable {
     @Dependency(\.downloadClient) var downloadClient
     @Dependency(\.hapticsClient) var hapticsClient
     @Dependency(\.cookieClient) var cookieClient
+    @Dependency(\.lanraragiClient) var lanraragiClient
     @Dependency(\.appLaunchAutomationClient) var appLaunchAutomationClient
     @Dependency(\.date) var date
     @Dependency(\.commentFilterTerms) var commentFilterTerms
@@ -266,9 +275,11 @@ extension DetailReducer {
         syncReducer
         downloadReducer
         fetchReducer
+        lanraragiReducer
         galleryOpsReducer
             .ifLet(\.$destination, action: \.destination)
             .ifLet(\.$alert, action: \.alert)
+            .ifLet(\.$toast, action: \.toast)
     }
 }
 

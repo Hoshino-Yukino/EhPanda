@@ -70,7 +70,7 @@ extension SettingPath.State {
         case .account:
             return .account(.onPresented)
         case .general:
-            return .general(.calculateWebImageDiskCache)
+            return .general(.onPresented)
         case .ehSetting:
             return .ehSetting(.fetchEhSetting)
         case .appActivityLogs:

@@ -3,6 +3,7 @@ import AppComponents
 import ApplicationClient
 public import AppModels
 public import ComposableArchitecture
+public import LANraragiClient
 import LibraryClient
 public import OSLogExt
 import Resources
@@ -31,6 +32,18 @@ public struct GeneralSettingReducer: Sendable {
         case enableTagsExtensionChanged
     }
 
+    /// The outcome of the LANraragi section's Test Connection, shown beside the button.
+    public enum LANraragiConnectionState: Equatable, Sendable {
+        case idle
+        case verifying
+        case verified
+        case failed
+    }
+
+    public enum CancelID: Hashable, Sendable {
+        case verifyLANraragiConnection
+    }
+
     @ObservableState
     public struct State: Equatable, Sendable {
         @Shared(.setting) public var setting: Setting
@@ -43,6 +56,11 @@ public struct GeneralSettingReducer: Sendable {
 
         public var loadingState: LoadingState = .idle
         public var diskImageCacheSize = "0 KB"
+
+        /// The API key field's text, read from the keychain when the screen is presented and written back on
+        /// every edit. The server address lives in `setting`.
+        public var lanraragiAPIKey = ""
+        public var lanraragiConnectionState: LANraragiConnectionState = .idle
 
         /// The level the analytics picker shows; `nil` until the user has chosen one, when the picker shows no
         /// selection (no level is ever a default, D-06a).
@@ -65,6 +83,13 @@ public struct GeneralSettingReducer: Sendable {
         /// stored level; `nil` is never offered and changes nothing.
         case analyticsLevelPicked(AnalyticsLevel?)
 
+        /// Sent by `SettingReducer` right after it pushes the screen.
+        case onPresented
+        case lanraragiServerURLChanged
+        case testLANraragiConnectionButtonTapped
+        /// `nil` when the server accepted the key.
+        case testLANraragiConnectionDone(LANraragiError?)
+
         case clearImageCacheButtonTapped
         case clearWebImageCache
         case navigateToSystemSetting
@@ -74,16 +99,49 @@ public struct GeneralSettingReducer: Sendable {
 
     @Dependency(\.analyticsClient) private var analyticsClient
     @Dependency(\.applicationClient) private var applicationClient
+    @Dependency(\.lanraragiClient) private var lanraragiClient
     @Dependency(\.libraryClient) private var libraryClient
 
     public init() {}
 
     public var body: some Reducer<State, Action> {
         BindingReducer()
+            .onChange(of: \.lanraragiAPIKey) { _, state in
+                state.lanraragiConnectionState = .idle
+                let apiKey = state.lanraragiAPIKey
+                return .merge(
+                    .cancel(id: CancelID.verifyLANraragiConnection),
+                    .run(operation: { _ in lanraragiClient.setAPIKey(apiKey) })
+                )
+            }
 
         Reduce { state, action in
             switch action {
             case .binding:
+                return .none
+
+            case .onPresented:
+                state.lanraragiAPIKey = lanraragiClient.apiKey()
+                return .send(.calculateWebImageDiskCache)
+
+            case .lanraragiServerURLChanged:
+                state.lanraragiConnectionState = .idle
+                return .cancel(id: CancelID.verifyLANraragiConnection)
+
+            case .testLANraragiConnectionButtonTapped:
+                state.lanraragiConnectionState = .verifying
+                return .run { [serverURL = state.setting.lanraragiServerURL, apiKey = state.lanraragiAPIKey] send in
+                    switch await lanraragiClient.verifyConnection(serverURL, apiKey) {
+                    case .success:
+                        await send(.testLANraragiConnectionDone(nil))
+                    case .failure(let error):
+                        await send(.testLANraragiConnectionDone(error))
+                    }
+                }
+                .cancellable(id: CancelID.verifyLANraragiConnection, cancelInFlight: true)
+
+            case .testLANraragiConnectionDone(let error):
+                state.lanraragiConnectionState = error == nil ? .verified : .failed
                 return .none
 
             case .destination:

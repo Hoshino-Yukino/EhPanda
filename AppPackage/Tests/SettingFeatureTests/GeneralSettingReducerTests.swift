@@ -2,6 +2,8 @@ import AnalyticsClient
 import AppModels
 import ComposableArchitecture
 import Foundation
+import LANraragiClient
+import LibraryClient
 @testable import SettingFeature
 import Sharing
 import Testing
@@ -192,6 +194,109 @@ struct GeneralSettingAnalyticsLevelTests {
 
             #expect(applied.levels.value.isEmpty)
             #expect(applied.signals.value.isEmpty)
+        }
+    }
+}
+
+// Covers the LANraragi section: the API key is read from the keychain when General is presented and written
+// back on each edit, and Test Connection reports the server's answer beside the button.
+@Suite
+struct GeneralSettingLANraragiTests {
+    /// The keys `setAPIKey` was called with, in order.
+    private final class StoredKeys: Sendable {
+        let values = LockIsolated<[String]>([])
+    }
+
+    private static func client(
+        storedKey: String = "",
+        storedKeys: StoredKeys = StoredKeys(),
+        verify: @escaping @Sendable (String, String) async -> Result<Void, LANraragiError> = { _, _ in .success(()) }
+    ) -> LANraragiClient {
+        var client = LANraragiClient.noop
+        client.apiKey = { storedKey }
+        client.setAPIKey = { key in storedKeys.values.withValue({ $0.append(key) }) }
+        client.verifyConnection = verify
+        return client
+    }
+
+    @MainActor
+    @Test
+    func presentingReadsTheStoredKey() async {
+        let store = TestStore(initialState: .init(), reducer: GeneralSettingReducer.init) {
+            $0.lanraragiClient = Self.client(storedKey: "stored-key")
+            $0.libraryClient = .noop
+        }
+
+        await store.send(.onPresented) {
+            $0.lanraragiAPIKey = "stored-key"
+        }
+        await store.receive(\.calculateWebImageDiskCache)
+        await store.receive(\.calculateWebImageDiskCacheDone)
+    }
+
+    @MainActor
+    @Test
+    func editingTheKeyStoresItAndResetsTheCheck() async {
+        let storedKeys = StoredKeys()
+        var state = GeneralSettingReducer.State()
+        state.lanraragiConnectionState = .verified
+        let store = TestStore(initialState: state, reducer: GeneralSettingReducer.init) {
+            $0.lanraragiClient = Self.client(storedKeys: storedKeys)
+        }
+
+        await store.send(.binding(.set(\.lanraragiAPIKey, "new-key"))) {
+            $0.lanraragiAPIKey = "new-key"
+            $0.lanraragiConnectionState = .idle
+        }
+        await store.finish()
+        #expect(storedKeys.values.value == ["new-key"])
+    }
+
+    @MainActor
+    @Test(arguments: [
+        (Result<Void, LANraragiError>.success(()), GeneralSettingReducer.LANraragiConnectionState.verified),
+        (.failure(.unauthorized), .failed),
+        (.failure(.networkingFailed), .failed)
+    ])
+    func testConnectionShowsTheOutcome(
+        result: Result<Void, LANraragiError>, expected: GeneralSettingReducer.LANraragiConnectionState
+    ) async {
+        let requests = LockIsolated<[String]>([])
+        // The server address lives in `@Shared(.setting)`; an in-memory store keeps it from other tests.
+        let defaults = UserDefaults.inMemory
+        let store = withDependencies {
+            $0.defaultAppStorage = defaults
+        } operation: {
+            var state = GeneralSettingReducer.State()
+            state.lanraragiAPIKey = "key"
+            state.$setting.withLock({ $0.lanraragiServerURL = "nas.local:3000" })
+            return TestStore(initialState: state, reducer: GeneralSettingReducer.init) {
+                $0.defaultAppStorage = defaults
+                $0.lanraragiClient = Self.client { serverURL, apiKey in
+                    requests.withValue({ $0.append("\(serverURL) \(apiKey)") })
+                    return result
+                }
+            }
+        }
+
+        await store.send(.testLANraragiConnectionButtonTapped) {
+            $0.lanraragiConnectionState = .verifying
+        }
+        await store.receive(\.testLANraragiConnectionDone) {
+            $0.lanraragiConnectionState = expected
+        }
+        #expect(requests.value == ["nas.local:3000 key"])
+    }
+
+    @MainActor
+    @Test
+    func changingTheServerResetsTheCheck() async {
+        var state = GeneralSettingReducer.State()
+        state.lanraragiConnectionState = .failed
+        let store = TestStore(initialState: state, reducer: GeneralSettingReducer.init)
+
+        await store.send(.lanraragiServerURLChanged) {
+            $0.lanraragiConnectionState = .idle
         }
     }
 }

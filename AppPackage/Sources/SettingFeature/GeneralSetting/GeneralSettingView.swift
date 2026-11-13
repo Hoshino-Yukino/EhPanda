@@ -134,6 +134,7 @@ struct GeneralSettingView: View {
                     isOn: Binding($setting.detectLinksFromClipboard)
                 )
             }
+            lanraragiSection
             Section(.cache) {
                 Button {
                     store.send(.clearImageCacheButtonTapped)
@@ -163,8 +164,92 @@ struct GeneralSettingView: View {
         .onChange(of: setting.enableTagsExtension) { _, _ in
             store.send(.delegate(.enableTagsExtensionChanged))
         }
+        .onChange(of: setting.lanraragiServerURL) { _, _ in
+            store.send(.lanraragiServerURLChanged)
+        }
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle(.general)
+    }
+
+    /// The LANraragi server galleries are sent to from the detail page, its API key and a connection check. Leaving
+    /// the address empty hides Send to LANraragi.
+    private var lanraragiSection: some View {
+        Section {
+            lanraragiRow(.lanraragiServerAddress) {
+                TextField(
+                    text: Binding($setting.lanraragiServerURL),
+                    prompt: Text(verbatim: "http://192.168.1.2:3000")
+                ) {
+                    Text(.lanraragiServerAddress)
+                }
+                .keyboardType(.URL)
+                .textContentType(.URL)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            }
+            lanraragiRow(.lanraragiApiKey) {
+                SecureField(text: $store.lanraragiAPIKey) {
+                    Text(.lanraragiApiKey)
+                }
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            }
+            Button {
+                store.send(.testLANraragiConnectionButtonTapped)
+            } label: {
+                HStack {
+                    Text(.testLanraragiConnection)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    lanraragiConnectionStateView
+                }
+            }
+            .disabled(setting.lanraragiServerURL.isEmpty || store.lanraragiConnectionState == .verifying)
+        } header: {
+            Text(.lanraragi)
+        } footer: {
+            Text(.lanraragiDescription)
+        }
+    }
+
+    /// A labeled field: the label leading and the field trailing, or, at accessibility sizes, the field on its
+    /// own line below the label.
+    @ViewBuilder
+    private func lanraragiRow<Field: View>(
+        _ title: LocalizedStringResource, @ViewBuilder field: () -> Field
+    ) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading) {
+                Text(title)
+                    .accessibilityHidden(true)
+                field()
+            }
+        } else {
+            LabeledContent {
+                field()
+                    .multilineTextAlignment(.trailing)
+            } label: {
+                Text(title)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+
+    @ViewBuilder private var lanraragiConnectionStateView: some View {
+        switch store.lanraragiConnectionState {
+        case .idle:
+            EmptyView()
+        case .verifying:
+            ProgressView()
+        case .verified:
+            Image(systemSymbol: .checkmarkCircleFill)
+                .foregroundStyle(.green)
+                .accessibilityLabel(.accessibilityLanraragiConnectionSucceeded)
+        case .failed:
+            Image(systemSymbol: .xmarkCircleFill)
+                .foregroundStyle(.red)
+                .accessibilityLabel(.accessibilityLanraragiConnectionFailed)
+        }
     }
 
     /// The analytics level, the privacy page and, as the footer, what the selected level shares (UI-SPEC C-9, D-07).

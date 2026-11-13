@@ -133,6 +133,8 @@ public struct Setting: Codable, Equatable, Sendable, MigratableModel {
             analyticsLevel = nil
         }
         bypassSNIFiltering = try container.decode(Bool.self, forKey: .bypassSNIFiltering)
+        // Added after v2 without a schema bump: an absent key, as in every blob written before it, is no server.
+        lanraragiServerURL = try container.decodeIfPresent(String.self, forKey: .lanraragiServerURL) ?? ""
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -143,7 +145,7 @@ public struct Setting: Codable, Equatable, Sendable, MigratableModel {
         case prefetchLimit, enableDualPageMode, orientationReadingPreferences, exceptCover
         case contentDividerHeight, maximumScaleFactor, doubleTapScaleFactor, downloadThreadLimit
         case downloadAllowCellular, downloadAutoRetryFailedPages, ageDeclarationVersion, analyticsLevel
-        case bypassSNIFiltering
+        case bypassSNIFiltering, lanraragiServerURL
     }
     // A self-validating field: it rejects a newer/downgrade blob on decode (see `SchemaVersion`), which
     // fails the whole decode so Sharing resets to the key default. Synthesized Codable is otherwise
@@ -170,6 +172,9 @@ public struct Setting: Codable, Equatable, Sendable, MigratableModel {
     public var redirectLinksToSelectedHost = false
     public var detectLinksFromClipboard = false
     public var privacyMaskIntensity: Double = 10
+    /// The LANraragi server galleries are sent to; empty hides the detail page's Send to LANraragi. Its API key
+    /// lives in the keychain (`LANraragiClient`), not here.
+    public var lanraragiServerURL = ""
 
     // Appearance
     public var galleryListPresentation = GalleryListPresentation()

@@ -40,6 +40,14 @@ extension DetailView {
                 Label(.RLocalizable.share, systemSymbol: .squareAndArrowUp)
             }
             .disabled(store.galleryDetail == nil || store.loadingState == .loading)
+            if !store.setting.lanraragiServerURL.isEmpty {
+                Button {
+                    store.send(.sendToLANraragiButtonTapped)
+                } label: {
+                    Label(.sendToLanraragi, systemSymbol: .trayAndArrowDown)
+                }
+                .disabled(store.gallery.galleryURL == nil)
+            }
         }
     }
 }

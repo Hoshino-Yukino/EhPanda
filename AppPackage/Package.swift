@@ -93,6 +93,7 @@ enum Module: String {
     case filtersFeature = "FiltersFeature"
     case galleryListComponents = "GalleryListComponents"
     case hapticsClient = "HapticsClient"
+    case lanraragiClient = "LANraragiClient"
     case homeFeature = "HomeFeature"
     case imageClient = "ImageClient"
     case imageColors = "ImageColors"
@@ -145,6 +146,7 @@ enum Module: String {
     case searchFeatureTests = "SearchFeatureTests"
     case favoritesFeatureTests = "FavoritesFeatureTests"
     case liveCheckTests = "LiveCheckTests"
+    case lanraragiClientTests = "LANraragiClientTests"
 }
 
 extension Module {
@@ -443,6 +445,13 @@ let targets: [PackageDescription.Target] = [
             .targetDependency(.composableArchitecture)
         ]
     ),
+    // Fork addition: sends galleries to the user's LANraragi server and keeps its API key in the keychain.
+    .target(
+        module: .lanraragiClient,
+        dependencies: [
+            .targetDependency(.composableArchitecture)
+        ]
+    ),
     .target(
         module: .appComponents,
         dependencies: [
@@ -659,6 +668,7 @@ let targets: [PackageDescription.Target] = [
             .module(.dfClient),
             .module(.fileClient),
             .module(.hapticsClient),
+            .module(.lanraragiClient),
             .module(.libraryClient),
             .module(.logsClient),
             .module(.networkingFeature),
@@ -744,6 +754,7 @@ let targets: [PackageDescription.Target] = [
             .module(.filtersFeature),
             .module(.galleryListComponents),
             .module(.hapticsClient),
+            .module(.lanraragiClient),
             .module(.networkingFeature),
             .module(.quickSearchFeature),
             .module(.readingFeature),
@@ -971,6 +982,7 @@ let targets: [PackageDescription.Target] = [
             .module(.cookieClient),
             .module(.fileClient),
             .module(.hapticsClient),
+            .module(.lanraragiClient),
             .module(.logsClient),
             .module(.settingFeature),
             .targetDependency(.composableArchitecture),
@@ -990,6 +1002,7 @@ let targets: [PackageDescription.Target] = [
             .module(.appModels),
             .module(.detailFeature),
             .module(.hapticsClient),
+            .module(.lanraragiClient),
             .targetDependency(.composableArchitecture),
             .module(.appComponents),
             .module(.appLaunchAutomationClient),
@@ -1030,6 +1043,12 @@ let targets: [PackageDescription.Target] = [
             .module(.appTools),
             .module(.appModels),
             .module(.testingSupport)
+        ]
+    ),
+    .testTarget(
+        module: .lanraragiClientTests,
+        dependencies: [
+            .module(.lanraragiClient)
         ]
     ),
     .testTarget(

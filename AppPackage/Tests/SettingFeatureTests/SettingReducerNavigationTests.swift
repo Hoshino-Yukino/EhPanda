@@ -5,6 +5,7 @@ import CookieClient
 import FileClient
 import Foundation
 import HapticsClient
+import LANraragiClient
 import LibraryClient
 import LogsClient
 @testable import SettingFeature
@@ -29,6 +30,7 @@ struct SettingReducerNavigationTests {
         TestStore(initialState: initialState, reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
             $0.cookieClient = .noop
+            $0.lanraragiClient = .noop
             $0.libraryClient = .noop
             $0.logsClient = .noop
         }
@@ -157,6 +159,7 @@ struct SettingReducerNavigationTests {
         let store = TestStore(initialState: .init(), reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
             $0.defaultInMemoryStorage = InMemoryStorage()
+            $0.lanraragiClient = .noop
             $0.libraryClient = .noop
             $0.logsClient = .noop
         }
@@ -193,6 +196,7 @@ struct SettingReducerNavigationTests {
             let store = TestStore(initialState: initialState, reducer: SettingReducer.init) {
                 $0.analyticsClient = .noop
                 $0.defaultAppStorage = defaults
+                $0.lanraragiClient = .noop
                 $0.libraryClient = .noop
                 $0.fileClient.loadCachedTagTranslator = { (_: TagTranslatorInfo) throws(AppError) in
                     throw .fileOperationFailed("Read cached tag translations")
@@ -216,6 +220,7 @@ struct SettingReducerNavigationTests {
         let store = TestStore(initialState: .init(), reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
             $0.defaultAppStorage = UserDefaults.inMemory
+            $0.lanraragiClient = .noop
             $0.libraryClient = .noop
         }
 
@@ -223,8 +228,9 @@ struct SettingReducerNavigationTests {
             $0.path.append(SettingReducer.RootScreen.general.pathElement)
         }
         let id = try #require(store.state.path.ids.last)
-        // Presenting General starts its cache measurement; the noop client reports no size, so it
-        // settles without a state change.
+        // Presenting General reads the (empty) LANraragi key and starts its cache measurement; the noop
+        // clients report no key and no size, so it settles without a state change.
+        await store.receive(\.path[id: id].general.onPresented)
         await store.receive(\.path[id: id].general.calculateWebImageDiskCache)
         await store.receive(\.path[id: id].general.calculateWebImageDiskCacheDone)
         await store.send(.path(.element(id: id, action: .general(.delegate(.enableTagsExtensionChanged)))))
@@ -239,6 +245,7 @@ struct SettingReducerNavigationTests {
         let (results, continuation) = AsyncStream<Result<TagTranslator, AppError>>.makeStream()
         let store = TestStore(initialState: .init(), reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
+            $0.lanraragiClient = .noop
             $0.libraryClient = .noop
             $0.fileClient.importTagTranslator = { _ in
                 var iterator = results.makeAsyncIterator()
@@ -254,6 +261,7 @@ struct SettingReducerNavigationTests {
             $0.path.append(SettingReducer.RootScreen.general.pathElement)
         }
         let id = try #require(store.state.path.ids.last)
+        await store.receive(\.path[id: id].general.onPresented)
         await store.receive(\.path[id: id].general.calculateWebImageDiskCache)
         await store.receive(\.path[id: id].general.calculateWebImageDiskCacheDone)
         let url = URL(filePath: "/tmp/tags.json")

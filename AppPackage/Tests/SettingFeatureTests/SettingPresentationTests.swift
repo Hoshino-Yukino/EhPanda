@@ -4,6 +4,7 @@ import AppTools
 import ComposableArchitecture
 import CookieClient
 import Foundation
+import LANraragiClient
 import LibraryClient
 import LogsClient
 import ReadingSettingFeature
@@ -28,7 +29,7 @@ struct SettingPresentationTests {
         #expect(SettingPath.State.account(.init()).onPresentedAction?.is(\.account.onPresented) == true)
         #expect(
             SettingPath.State.general(.init())
-                .onPresentedAction?.is(\.general.calculateWebImageDiskCache) == true
+                .onPresentedAction?.is(\.general.onPresented) == true
         )
         #expect(
             SettingPath.State.ehSetting(.init())
@@ -79,6 +80,7 @@ struct SettingPresentationTests {
     func pushingGeneralMeasuresTheImageCache() async throws {
         let store = TestStore(initialState: .init(), reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
+            $0.lanraragiClient = .noop
             $0.libraryClient = .init(
                 initializeWebImage: {},
                 removeAllCachedImages: {},
@@ -95,6 +97,7 @@ struct SettingPresentationTests {
             $0.path.append(.general(.init()))
         }
         let id = try #require(store.state.path.ids.last)
+        await store.receive(\.path[id: id].general.onPresented)
         await store.receive(\.path[id: id].general.calculateWebImageDiskCache)
         await store.receive(\.path[id: id].general.calculateWebImageDiskCacheDone) {
             let formatter = ByteCountFormatter()
@@ -117,6 +120,7 @@ struct SettingPresentationTests {
         let store = TestStore(initialState: .init(), reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
             $0.defaultInMemoryStorage = InMemoryStorage()
+            $0.lanraragiClient = .noop
             $0.libraryClient = .noop
             $0.logsClient = logsClient
         }
@@ -143,6 +147,7 @@ struct SettingPresentationTests {
     func dedupedPushStartsNothing() async {
         let store = TestStore(initialState: .init(), reducer: SettingReducer.init) {
             $0.analyticsClient = .noop
+            $0.lanraragiClient = .noop
             $0.libraryClient = .noop
         }
         store.exhaustivity = .off
